@@ -11,7 +11,7 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'SELECT * FROM public."menu-items"',
+                'SELECT * FROM public."menu_items"',
                 (err, result) => {
                     done()
                     if (err) {
@@ -40,7 +40,7 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'INSERT INTO public."menu-items" (id, name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
+                'INSERT INTO public."menu_items" (id, name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
                 [uuid, name, description, price],
                 (err, result) => {
                     done()
@@ -71,7 +71,7 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'UPDATE public."menu-items" SET name = $1, description = $2, price = $3 WHERE id = $4 RETURNING *',
+                'UPDATE public."menu_items" SET name = $1, description = $2, price = $3 WHERE id = $4 RETURNING *',
                 [name, description, price, id],
                 (err, result) => {
                     done()
@@ -104,7 +104,7 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'DELETE FROM public."menu-items" WHERE id = $1 RETURNING *',
+                'DELETE FROM public."menu_items" WHERE id = $1 RETURNING *',
                 [id],
                 (err, result) => {
                     done()
