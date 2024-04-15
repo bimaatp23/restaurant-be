@@ -1,35 +1,35 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
 
-module.exports = function (MenuItem) {
+module.exports = function (Menu) {
     // GET
-    MenuItem.get = function (callback) {
+    Menu.get = function (callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(err)
                 return
             }
             client.query(
-                'SELECT * FROM public."menu_items"',
+                'SELECT * FROM public."menus"',
                 (err, result) => {
                     done()
                     if (err) {
                         callback(err)
                     } else {
-                        const menuItem = result.rows
-                        callback(null, menuItem)
+                        const menu = result.rows
+                        callback(null, menu)
                     }
                 }
             )
         })
     }
-    MenuItem.remoteMethod('get', {
+    Menu.remoteMethod('get', {
         http: { verb: 'get', path: '/' },
-        returns: { arg: 'menuItem', type: 'array', root: true }
+        returns: { arg: 'menu', type: 'array', root: true }
     })
 
     // POST
-    MenuItem.create = function (data, callback) {
+    Menu.create = function (data, callback) {
         const { name, description, price } = data
         db.connect((err, client, done) => {
             if (err) {
@@ -37,28 +37,28 @@ module.exports = function (MenuItem) {
                 return
             }
             client.query(
-                'INSERT INTO public."menu_items" (id, name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
+                'INSERT INTO public."menus" (id, name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
                 [uuid(), name, description, price],
                 (err, result) => {
                     done()
                     if (err) {
                         callback(err)
                     } else {
-                        const menuItem = result.rows[0]
-                        callback(null, menuItem)
+                        const menu = result.rows[0]
+                        callback(null, menu)
                     }
                 }
             )
         })
     }
-    MenuItem.remoteMethod('create', {
+    Menu.remoteMethod('create', {
         http: { verb: 'post', path: '/' },
         accepts: { arg: 'data', type: 'object', http: { source: 'body' } },
-        returns: { arg: 'menuItem', type: 'object', root: true }
+        returns: { arg: 'menu', type: 'object', root: true }
     })
 
     // PUT
-    MenuItem.update = function (id, data, callback) {
+    Menu.update = function (id, data, callback) {
         const { name, description, price } = data
         db.connect((err, client, done) => {
             if (err) {
@@ -66,54 +66,54 @@ module.exports = function (MenuItem) {
                 return
             }
             client.query(
-                'UPDATE public."menu_items" SET name = $1, description = $2, price = $3 WHERE id = $4 RETURNING *',
+                'UPDATE public."menus" SET name = $1, description = $2, price = $3 WHERE id = $4 RETURNING *',
                 [name, description, price, id],
                 (err, result) => {
                     done()
                     if (err) {
                         callback(err)
                     } else {
-                        const menuItem = result.rows[0]
-                        callback(null, menuItem)
+                        const menu = result.rows[0]
+                        callback(null, menu)
                     }
                 }
             )
         })
     }
-    MenuItem.remoteMethod('update', {
+    Menu.remoteMethod('update', {
         http: { verb: 'put', path: '/:id' },
         accepts: [
             { arg: 'id', type: 'string', required: true },
             { arg: 'data', type: 'object', http: { source: 'body' } }
         ],
-        returns: { arg: 'menuItem', type: 'object', root: true }
+        returns: { arg: 'menu', type: 'object', root: true }
     })
 
     // DELETE
-    MenuItem.delete = function (id, callback) {
+    Menu.delete = function (id, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(err)
                 return
             }
             client.query(
-                'DELETE FROM public."menu_items" WHERE id = $1 RETURNING *',
+                'DELETE FROM public."menus" WHERE id = $1 RETURNING *',
                 [id],
                 (err, result) => {
                     done()
                     if (err) {
                         callback(err)
                     } else {
-                        const menuItem = result.rows[0]
-                        callback(null, menuItem)
+                        const menu = result.rows[0]
+                        callback(null, menu)
                     }
                 }
             )
         })
     }
-    MenuItem.remoteMethod('delete', {
+    Menu.remoteMethod('delete', {
         http: { verb: 'delete', path: '/:id' },
         accepts: { arg: 'id', type: 'string', required: true },
-        returns: { arg: 'menuItem', type: 'object', root: true }
+        returns: { arg: 'menu', type: 'object', root: true }
     })
 }
