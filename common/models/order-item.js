@@ -1,9 +1,9 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
 
-module.exports = function (Order) {
+module.exports = function (OrderItem) {
     // GET
-    Order.get = function (callback) {
+    OrderItem.get = function (callback) {
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -11,11 +11,11 @@ module.exports = function (Order) {
                 return
             }
             client.query(
-                'SELECT * FROM public."orders"',
+                'SELECT * FROM public."order_items"',
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error retrieving order:', err)
+                        console.error('Error retrieving order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows
@@ -25,14 +25,14 @@ module.exports = function (Order) {
             )
         })
     }
-    Order.remoteMethod('get', {
+    OrderItem.remoteMethod('get', {
         http: { verb: 'get', path: '/' },
         returns: { arg: 'order', type: 'array', root: true }
     })
 
     // POST
-    Order.create = function (data, callback) {
-        const { customer_id, date, status } = data
+    OrderItem.create = function (data, callback) {
+        const { order_id, menu_item_id, quantity } = data
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -40,12 +40,12 @@ module.exports = function (Order) {
                 return
             }
             client.query(
-                'INSERT INTO public."orders" (id, customer_id, date, status) VALUES ($1, $2, $3, $4) RETURNING *',
-                [uuid(), customer_id, date, status],
+                'INSERT INTO public."order_items" (id, order_id, menu_item_id, quantity) VALUES ($1, $2, $3, $4) RETURNING *',
+                [uuid(), order_id, menu_item_id, quantity],
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error inserting order:', err)
+                        console.error('Error inserting order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows[0]
@@ -55,15 +55,15 @@ module.exports = function (Order) {
             )
         })
     }
-    Order.remoteMethod('create', {
+    OrderItem.remoteMethod('create', {
         http: { verb: 'post', path: '/' },
         accepts: { arg: 'data', type: 'object', http: { source: 'body' } },
         returns: { arg: 'order', type: 'object', root: true }
     })
 
     // PUT
-    Order.update = function (id, data, callback) {
-        const { customer_id, date, status } = data
+    OrderItem.update = function (id, data, callback) {
+        const { order_id, menu_item_id, quantity } = data
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -71,12 +71,12 @@ module.exports = function (Order) {
                 return
             }
             client.query(
-                'UPDATE public."orders" SET customer_id = $1, date = $2, status = $3 WHERE id = $4 RETURNING *',
-                [customer_id, date, status, id],
+                'UPDATE public."order_items" SET order_id = $1, menu_item_id = $2, quantity = $3 WHERE id = $4 RETURNING *',
+                [order_id, menu_item_id, quantity, id],
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error updating order:', err)
+                        console.error('Error updating order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows[0]
@@ -86,7 +86,7 @@ module.exports = function (Order) {
             )
         })
     }
-    Order.remoteMethod('update', {
+    OrderItem.remoteMethod('update', {
         http: { verb: 'put', path: '/:id' },
         accepts: [
             { arg: 'id', type: 'string', required: true },
@@ -96,7 +96,7 @@ module.exports = function (Order) {
     })
 
     // DELETE
-    Order.delete = function (id, callback) {
+    OrderItem.delete = function (id, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -104,12 +104,12 @@ module.exports = function (Order) {
                 return
             }
             client.query(
-                'DELETE FROM public."orders" WHERE id = $1 RETURNING *',
+                'DELETE FROM public."order_items" WHERE id = $1 RETURNING *',
                 [id],
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error deleting order:', err)
+                        console.error('Error deleting order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows[0]
@@ -119,7 +119,7 @@ module.exports = function (Order) {
             )
         })
     }
-    Order.remoteMethod('delete', {
+    OrderItem.remoteMethod('delete', {
         http: { verb: 'delete', path: '/:id' },
         accepts: { arg: 'id', type: 'string', required: true },
         returns: { arg: 'order', type: 'object', root: true }

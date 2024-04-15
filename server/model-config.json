@@ -47,5 +47,9 @@
   "Order": {
     "dataSource": null,
     "public": true
+  },
+  "OrderItem": {
+    "dataSource": null,
+    "public": true
   }
 }

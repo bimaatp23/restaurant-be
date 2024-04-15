@@ -1,9 +1,9 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
 
-module.exports = function (Menuitem) {
+module.exports = function (MenuItem) {
     // GET
-    Menuitem.get = function (callback) {
+    MenuItem.get = function (callback) {
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -25,13 +25,13 @@ module.exports = function (Menuitem) {
             )
         })
     }
-    Menuitem.remoteMethod('get', {
+    MenuItem.remoteMethod('get', {
         http: { verb: 'get', path: '/' },
         returns: { arg: 'menuItem', type: 'array', root: true }
     })
 
     // POST
-    Menuitem.create = function (data, callback) {
+    MenuItem.create = function (data, callback) {
         const { name, description, price } = data
         db.connect((err, client, done) => {
             if (err) {
@@ -55,14 +55,14 @@ module.exports = function (Menuitem) {
             )
         })
     }
-    Menuitem.remoteMethod('create', {
+    MenuItem.remoteMethod('create', {
         http: { verb: 'post', path: '/' },
         accepts: { arg: 'data', type: 'object', http: { source: 'body' } },
         returns: { arg: 'menuItem', type: 'object', root: true }
     })
 
     // PUT
-    Menuitem.update = function (id, data, callback) {
+    MenuItem.update = function (id, data, callback) {
         const { name, description, price } = data
         db.connect((err, client, done) => {
             if (err) {
@@ -86,7 +86,7 @@ module.exports = function (Menuitem) {
             )
         })
     }
-    Menuitem.remoteMethod('update', {
+    MenuItem.remoteMethod('update', {
         http: { verb: 'put', path: '/:id' },
         accepts: [
             { arg: 'id', type: 'string', required: true },
@@ -96,7 +96,7 @@ module.exports = function (Menuitem) {
     })
 
     // DELETE
-    Menuitem.delete = function (id, callback) {
+    MenuItem.delete = function (id, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -119,7 +119,7 @@ module.exports = function (Menuitem) {
             )
         })
     }
-    Menuitem.remoteMethod('delete', {
+    MenuItem.remoteMethod('delete', {
         http: { verb: 'delete', path: '/:id' },
         accepts: { arg: 'id', type: 'string', required: true },
         returns: { arg: 'menuItem', type: 'object', root: true }
