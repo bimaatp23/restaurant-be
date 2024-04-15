@@ -6,7 +6,6 @@ module.exports = function (OrderItem) {
     OrderItem.get = function (callback) {
         db.connect((err, client, done) => {
             if (err) {
-                console.error('Error connecting to PostgreSQL:', err)
                 callback(err)
                 return
             }
@@ -15,7 +14,6 @@ module.exports = function (OrderItem) {
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error retrieving order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows
@@ -35,7 +33,6 @@ module.exports = function (OrderItem) {
         const { order_id, menu_item_id, quantity } = data
         db.connect((err, client, done) => {
             if (err) {
-                console.error('Error connecting to PostgreSQL:', err)
                 callback(err)
                 return
             }
@@ -45,7 +42,6 @@ module.exports = function (OrderItem) {
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error inserting order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows[0]
@@ -66,7 +62,6 @@ module.exports = function (OrderItem) {
         const { order_id, menu_item_id, quantity } = data
         db.connect((err, client, done) => {
             if (err) {
-                console.error('Error connecting to PostgreSQL:', err)
                 callback(err)
                 return
             }
@@ -76,7 +71,6 @@ module.exports = function (OrderItem) {
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error updating order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows[0]
@@ -99,7 +93,6 @@ module.exports = function (OrderItem) {
     OrderItem.delete = function (id, callback) {
         db.connect((err, client, done) => {
             if (err) {
-                console.error('Error connecting to PostgreSQL:', err)
                 callback(err)
                 return
             }
@@ -109,7 +102,6 @@ module.exports = function (OrderItem) {
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error deleting order item:', err)
                         callback(err)
                     } else {
                         const order = result.rows[0]
