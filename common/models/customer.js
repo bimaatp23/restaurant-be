@@ -1,4 +1,4 @@
-const uuid = require('../../server/utils/UUID')
+const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
 
 module.exports = function (Customer) {
@@ -41,7 +41,7 @@ module.exports = function (Customer) {
             }
             client.query(
                 'INSERT INTO public."customers" (id, name, username, password) VALUES ($1, $2, $3, $4) RETURNING *',
-                [uuid, name, username, password],
+                [uuid(), name, username, password],
                 (err, result) => {
                     done()
                     if (err) {

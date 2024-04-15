@@ -43,5 +43,9 @@
   "Customer": {
     "dataSource": null,
     "public": true
+  },
+  "Order": {
+    "dataSource": null,
+    "public": true
   }
 }

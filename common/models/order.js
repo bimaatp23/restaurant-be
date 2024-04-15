@@ -1,9 +1,9 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
 
-module.exports = function (Menuitem) {
+module.exports = function (Order) {
     // GET
-    Menuitem.get = function (callback) {
+    Order.get = function (callback) {
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -11,28 +11,28 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'SELECT * FROM public."menu_items"',
+                'SELECT * FROM public."orders"',
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error retrieving menu item:', err)
+                        console.error('Error retrieving order:', err)
                         callback(err)
                     } else {
-                        const menuItem = result.rows
-                        callback(null, menuItem)
+                        const order = result.rows
+                        callback(null, order)
                     }
                 }
             )
         })
     }
-    Menuitem.remoteMethod('get', {
+    Order.remoteMethod('get', {
         http: { verb: 'get', path: '/' },
-        returns: { arg: 'menuItem', type: 'array', root: true }
+        returns: { arg: 'order', type: 'array', root: true }
     })
 
     // POST
-    Menuitem.create = function (data, callback) {
-        const { name, description, price } = data
+    Order.create = function (data, callback) {
+        const { customers_id, date, status } = data
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -40,30 +40,30 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'INSERT INTO public."menu_items" (id, name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
-                [uuid(), name, description, price],
+                'INSERT INTO public."orders" (id, customers_id, date, status) VALUES ($1, $2, $3, $4) RETURNING *',
+                [uuid(), customers_id, date, status],
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error inserting menu item:', err)
+                        console.error('Error inserting order:', err)
                         callback(err)
                     } else {
-                        const menuItem = result.rows[0]
-                        callback(null, menuItem)
+                        const order = result.rows[0]
+                        callback(null, order)
                     }
                 }
             )
         })
     }
-    Menuitem.remoteMethod('create', {
+    Order.remoteMethod('create', {
         http: { verb: 'post', path: '/' },
         accepts: { arg: 'data', type: 'object', http: { source: 'body' } },
-        returns: { arg: 'menuItem', type: 'object', root: true }
+        returns: { arg: 'order', type: 'object', root: true }
     })
 
     // PUT
-    Menuitem.update = function (id, data, callback) {
-        const { name, description, price } = data
+    Order.update = function (id, data, callback) {
+        const { customers_id, date, status } = data
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -71,32 +71,32 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'UPDATE public."menu_items" SET name = $1, description = $2, price = $3 WHERE id = $4 RETURNING *',
-                [name, description, price, id],
+                'UPDATE public."orders" SET customers_id = $1, date = $2, status = $3 WHERE id = $4 RETURNING *',
+                [customers_id, date, status, id],
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error updating menu item:', err)
+                        console.error('Error updating order:', err)
                         callback(err)
                     } else {
-                        const menuItem = result.rows[0]
-                        callback(null, menuItem)
+                        const order = result.rows[0]
+                        callback(null, order)
                     }
                 }
             )
         })
     }
-    Menuitem.remoteMethod('update', {
+    Order.remoteMethod('update', {
         http: { verb: 'put', path: '/:id' },
         accepts: [
             { arg: 'id', type: 'string', required: true },
             { arg: 'data', type: 'object', http: { source: 'body' } }
         ],
-        returns: { arg: 'menuItem', type: 'object', root: true }
+        returns: { arg: 'order', type: 'object', root: true }
     })
 
     // DELETE
-    Menuitem.delete = function (id, callback) {
+    Order.delete = function (id, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 console.error('Error connecting to PostgreSQL:', err)
@@ -104,24 +104,24 @@ module.exports = function (Menuitem) {
                 return
             }
             client.query(
-                'DELETE FROM public."menu_items" WHERE id = $1 RETURNING *',
+                'DELETE FROM public."orders" WHERE id = $1 RETURNING *',
                 [id],
                 (err, result) => {
                     done()
                     if (err) {
-                        console.error('Error deleting menu item:', err)
+                        console.error('Error deleting order:', err)
                         callback(err)
                     } else {
-                        const menuItem = result.rows[0]
-                        callback(null, menuItem)
+                        const order = result.rows[0]
+                        callback(null, order)
                     }
                 }
             )
         })
     }
-    Menuitem.remoteMethod('delete', {
+    Order.remoteMethod('delete', {
         http: { verb: 'delete', path: '/:id' },
         accepts: { arg: 'id', type: 'string', required: true },
-        returns: { arg: 'menuItem', type: 'object', root: true }
+        returns: { arg: 'order', type: 'object', root: true }
     })
 }
