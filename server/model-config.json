@@ -39,5 +39,9 @@
   "MenuItem": {
     "dataSource": null,
     "public": true
+  },
+  "Customer": {
+    "dataSource": null,
+    "public": true
   }
 }
