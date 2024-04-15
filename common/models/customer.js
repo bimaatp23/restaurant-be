@@ -1,6 +1,6 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
-const response = require('../../server/utils/Response')
+const { response, error_response } = require('../../server/utils/Response')
 const jwt = require('jsonwebtoken')
 const authentication = require('../../server/utils/Authentication')
 const dotenv = require('dotenv').config()
@@ -10,7 +10,7 @@ module.exports = function (Customer) {
     // Customer.get = function (callback) {
     //     db.connect((err, client, done) => {
     //         if (err) {
-    //             callback(err)
+    //             callback(null, error_response(err.message))
     //             return
     //         }
     //         client.query(
@@ -18,7 +18,7 @@ module.exports = function (Customer) {
     //             (err, result) => {
     //                 done()
     //                 if (err) {
-    //                     callback(err)
+    //                     callback(null, error_response(err.message))
     //                 } else {
     //                     const customer = result.rows
     //                     callback(null, customer)
@@ -36,7 +36,7 @@ module.exports = function (Customer) {
     Customer.login = function (username, password, callback) {
         db.connect((err, client, done) => {
             if (err) {
-                callback(err)
+                callback(null, error_response(err.message))
                 return
             }
             client.query(
@@ -45,7 +45,7 @@ module.exports = function (Customer) {
                 (err, result) => {
                     done()
                     if (err) {
-                        callback(err)
+                        callback(null, error_response(err.message))
                     } else {
                         const customer = result.rows
                         if (customer.length == 0) {
@@ -76,39 +76,41 @@ module.exports = function (Customer) {
         ],
         returns: { arg: 'customer', type: 'object', root: true }
     })
-    // Customer.create = function (data, callback) {
-    //     const { name, username, password } = data
-    //     db.connect((err, client, done) => {
-    //         if (err) {
-    //             callback(err)
-    //             return
-    //         }
-    //         client.query(
-    //             'INSERT INTO public."customers" (id, name, username, password) VALUES ($1, $2, $3, $4) RETURNING *',
-    //             [uuid(), name, username, password],
-    //             (err, result) => {
-    //                 done()
-    //                 if (err) {
-    //                     callback(err)
-    //                 } else {
-    //                     const customer = result.rows[0]
-    //                     callback(null, customer)
-    //                 }
-    //             }
-    //         )
-    //     })
-    // }
-    // Customer.remoteMethod('create', {
-    //     http: { verb: 'post', path: '/' },
-    //     accepts: { arg: 'data', type: 'object', http: { source: 'body' } },
-    //     returns: { arg: 'customer', type: 'object', root: true }
-    // })
+    Customer.register = function (name, username, password, callback) {
+        db.connect((err, client, done) => {
+            if (err) {
+                callback(null, error_response(err.message))
+                return
+            }
+            client.query(
+                'INSERT INTO public."customers" (id, name, username, password) VALUES ($1, $2, $3, $4)',
+                [uuid(), name, username, password],
+                (err, result) => {
+                    done()
+                    if (err) {
+                        callback(null, error_response(err.message))
+                    } else {
+                        callback(null, response(200, 'Register Customer Success'))
+                    }
+                }
+            )
+        })
+    }
+    Customer.remoteMethod('register', {
+        http: { verb: 'post', path: '/register' },
+        accepts: [
+            { arg: 'name', type: 'string', http: { source: 'formData' } },
+            { arg: 'username', type: 'string', http: { source: 'formData' } },
+            { arg: 'password', type: 'string', http: { source: 'formData' } },
+        ],
+        returns: { arg: 'customer', type: 'object', root: true }
+    })
 
     // PUT
     Customer.changePassword = function (id, newPassword, callback) {
         db.connect((err, client, done) => {
             if (err) {
-                callback(err)
+                callback(null, error_response(err.message))
                 return
             }
             client.query(
@@ -117,7 +119,7 @@ module.exports = function (Customer) {
                 (err, result) => {
                     done()
                     if (err) {
-                        callback(err)
+                        callback(null, error_response(err.message))
                     } else {
                         callback(null, response(200, 'Change Password Customer Success'))
                     }
@@ -138,7 +140,7 @@ module.exports = function (Customer) {
     //     const { name, username, password } = data
     //     db.connect((err, client, done) => {
     //         if (err) {
-    //             callback(err)
+    //             callback(null, error_response(err.message))
     //             return
     //         }
     //         client.query(
@@ -147,7 +149,7 @@ module.exports = function (Customer) {
     //             (err, result) => {
     //                 done()
     //                 if (err) {
-    //                     callback(err)
+    //                     callback(null, error_response(err.message))
     //                 } else {
     //                     const customer = result.rows[0]
     //                     callback(null, customer)
@@ -169,7 +171,7 @@ module.exports = function (Customer) {
     // Customer.delete = function (id, callback) {
     //     db.connect((err, client, done) => {
     //         if (err) {
-    //             callback(err)
+    //             callback(null, error_response(err.message))
     //             return
     //         }
     //         client.query(
@@ -178,7 +180,7 @@ module.exports = function (Customer) {
     //             (err, result) => {
     //                 done()
     //                 if (err) {
-    //                     callback(err)
+    //                     callback(null, error_response(err.message))
     //                 } else {
     //                     const customer = result.rows[0]
     //                     callback(null, customer)

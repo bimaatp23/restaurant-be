@@ -8,4 +8,9 @@ const response = (error_code, error_message, output_schema) => {
     }
 }
 
-module.exports = response
+const error_response = (error_message) => response(500, error_message)
+
+module.exports = {
+    response,
+    error_response
+}
