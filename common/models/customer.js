@@ -1,7 +1,8 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
-const { resp } = require('../../server/utils/Response')
+const response = require('../../server/utils/Response')
 const jwt = require('jsonwebtoken')
+const authentication = require('../../server/utils/Authentication')
 const dotenv = require('dotenv').config()
 
 module.exports = function (Customer) {
@@ -46,18 +47,22 @@ module.exports = function (Customer) {
                     if (err) {
                         callback(err)
                     } else {
-                        const customer = result.rows[0]
-                        const token = jwt.sign({ 
-                            id: customer.id,
-                            name: customer.name,
-                            username: customer.username
-                         }, process.env.SECRET_KEY)
-                        callback(null, resp(200, 'Login Customer Success', {
-                            id: customer.id,
-                            name: customer.name,
-                            username: customer.username,
-                            token: token
-                        }))
+                        const customer = result.rows
+                        if (customer.length == 0) {
+                            callback(null, response(401, 'Invalid Username or Password'))
+                        } else {
+                            const token = jwt.sign({
+                                id: customer[0].id,
+                                name: customer[0].name,
+                                username: customer[0].username
+                            }, process.env.SECRET_KEY)
+                            callback(null, response(200, 'Login Customer Success', {
+                                id: customer[0].id,
+                                name: customer[0].name,
+                                username: customer[0].username,
+                                token: token
+                            }))
+                        }
                     }
                 }
             )
@@ -100,6 +105,35 @@ module.exports = function (Customer) {
     // })
 
     // PUT
+    Customer.changePassword = function (id, newPassword, callback) {
+        db.connect((err, client, done) => {
+            if (err) {
+                callback(err)
+                return
+            }
+            client.query(
+                'UPDATE public."customers" SET password = $1 WHERE id = $2',
+                [newPassword, id],
+                (err, result) => {
+                    done()
+                    if (err) {
+                        callback(err)
+                    } else {
+                        callback(null, response(200, 'Change Password Customer Success'))
+                    }
+                }
+            )
+        })
+    }
+    Customer.beforeRemote('changePassword', authentication)
+    Customer.remoteMethod('changePassword', {
+        http: { verb: 'put', path: '/change-password/:id' },
+        accepts: [
+            { arg: 'id', type: 'string', required: true },
+            { arg: 'newPassword', type: 'string', http: { source: 'formData' } }
+        ],
+        returns: { arg: 'customer', type: 'object', root: true }
+    })
     // Customer.update = function (id, data, callback) {
     //     const { name, username, password } = data
     //     db.connect((err, client, done) => {
