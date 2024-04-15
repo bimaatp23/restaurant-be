@@ -6,33 +6,7 @@ const authentication = require('../../server/utils/Authentication')
 const dotenv = require('dotenv').config()
 
 module.exports = function (Customer) {
-    // GET
-    // Customer.get = function (callback) {
-    //     db.connect((err, client, done) => {
-    //         if (err) {
-    //             callback(null, error_response(err.message))
-    //             return
-    //         }
-    //         client.query(
-    //             'SELECT * FROM public."customers"',
-    //             (err, result) => {
-    //                 done()
-    //                 if (err) {
-    //                     callback(null, error_response(err.message))
-    //                 } else {
-    //                     const customer = result.rows
-    //                     callback(null, customer)
-    //                 }
-    //             }
-    //         )
-    //     })
-    // }
-    // Customer.remoteMethod('get', {
-    //     http: { verb: 'get', path: '/' },
-    //     returns: { arg: 'customer', type: 'array', root: true }
-    // })
-
-    // POST
+    // LOGIN
     Customer.login = function (username, password, callback) {
         db.connect((err, client, done) => {
             if (err) {
@@ -76,6 +50,8 @@ module.exports = function (Customer) {
         ],
         returns: { arg: 'customer', type: 'object', root: true }
     })
+
+    // REGISTER
     Customer.register = function (name, username, password, callback) {
         db.connect((err, client, done) => {
             if (err) {
@@ -106,8 +82,8 @@ module.exports = function (Customer) {
         returns: { arg: 'customer', type: 'object', root: true }
     })
 
-    // PUT
-    Customer.changePassword = function (id, newPassword, callback) {
+    // CHANGE PASSWORD
+    Customer.changePassword = function (newPassword, payload, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
@@ -115,7 +91,7 @@ module.exports = function (Customer) {
             }
             client.query(
                 'UPDATE public."customers" SET password = $1 WHERE id = $2',
-                [newPassword, id],
+                [newPassword, payload.id],
                 (err, result) => {
                     done()
                     if (err) {
@@ -129,69 +105,43 @@ module.exports = function (Customer) {
     }
     Customer.beforeRemote('changePassword', authentication)
     Customer.remoteMethod('changePassword', {
-        http: { verb: 'put', path: '/change-password/:id' },
+        http: { verb: 'put', path: '/change-password' },
         accepts: [
-            { arg: 'id', type: 'string', required: true },
-            { arg: 'newPassword', type: 'string', http: { source: 'formData' } }
+            { arg: 'newPassword', type: 'string', http: { source: 'formData' } },
+            { arg: 'payload', type: 'object' }
         ],
         returns: { arg: 'customer', type: 'object', root: true }
     })
-    // Customer.update = function (id, data, callback) {
-    //     const { name, username, password } = data
-    //     db.connect((err, client, done) => {
-    //         if (err) {
-    //             callback(null, error_response(err.message))
-    //             return
-    //         }
-    //         client.query(
-    //             'UPDATE public."customers" SET name = $1, username = $2, password = $3 WHERE id = $4 RETURNING *',
-    //             [name, username, password, id],
-    //             (err, result) => {
-    //                 done()
-    //                 if (err) {
-    //                     callback(null, error_response(err.message))
-    //                 } else {
-    //                     const customer = result.rows[0]
-    //                     callback(null, customer)
-    //                 }
-    //             }
-    //         )
-    //     })
-    // }
-    // Customer.remoteMethod('update', {
-    //     http: { verb: 'put', path: '/:id' },
-    //     accepts: [
-    //         { arg: 'id', type: 'string', required: true },
-    //         { arg: 'data', type: 'object', http: { source: 'body' } }
-    //     ],
-    //     returns: { arg: 'customer', type: 'object', root: true }
-    // })
 
-    // DELETE
-    // Customer.delete = function (id, callback) {
-    //     db.connect((err, client, done) => {
-    //         if (err) {
-    //             callback(null, error_response(err.message))
-    //             return
-    //         }
-    //         client.query(
-    //             'DELETE FROM public."customers" WHERE id = $1 RETURNING *',
-    //             [id],
-    //             (err, result) => {
-    //                 done()
-    //                 if (err) {
-    //                     callback(null, error_response(err.message))
-    //                 } else {
-    //                     const customer = result.rows[0]
-    //                     callback(null, customer)
-    //                 }
-    //             }
-    //         )
-    //     })
-    // }
-    // Customer.remoteMethod('delete', {
-    //     http: { verb: 'delete', path: '/:id' },
-    //     accepts: { arg: 'id', type: 'string', required: true },
-    //     returns: { arg: 'customer', type: 'object', root: true }
-    // })
+    // UPDATE
+    Customer.update = function (name, username, payload, callback) {
+        db.connect((err, client, done) => {
+            if (err) {
+                callback(null, error_response(err.message))
+                return
+            }
+            client.query(
+                'UPDATE public."customers" SET name = $1, username = $2 WHERE id = $3',
+                [name, username, payload.id],
+                (err, result) => {
+                    done()
+                    if (err) {
+                        callback(null, error_response(err.message))
+                    } else {
+                        callback(null, response(200, 'Update Profile Customer Success'))
+                    }
+                }
+            )
+        })
+    }
+    Customer.beforeRemote('update', authentication)
+    Customer.remoteMethod('update', {
+        http: { verb: 'put', path: '/update' },
+        accepts: [
+            { arg: 'name', type: 'string', http: { source: 'formData' } },
+            { arg: 'username', type: 'string', http: { source: 'formData' } },
+            { arg: 'payload', type: 'object' }
+        ],
+        returns: { arg: 'customer', type: 'object', root: true }
+    })
 }
