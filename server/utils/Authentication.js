@@ -15,6 +15,7 @@ const authentication = (ctx, unused, next) => {
             ctx.res.send(response(401, 'Invalid Token'))
             return
         }
+        ctx.args.payload = decoded
         next()
     })
 }
