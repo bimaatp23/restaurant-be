@@ -24,7 +24,8 @@ module.exports = function (Menu) {
                                 id: data.id,
                                 name: data.name,
                                 description: data.description,
-                                price: parseFloat(data.price)
+                                price: parseFloat(data.price),
+                                image: data.image
                             }
                         })
                         callback(null, response(200, 'Get Menu List Success', menu))
@@ -39,15 +40,15 @@ module.exports = function (Menu) {
     })
 
     // POST
-    Menu.create = function (name, description, price, callback) {
+    Menu.create = function (name, description, price, image, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'INSERT INTO public."menus" (id, name, description, price) VALUES ($1, $2, $3, $4)',
-                [uuid(), name, description, price],
+                'INSERT INTO public."menus" (id, name, description, price, image) VALUES ($1, $2, $3, $4, $5)',
+                [uuid(), name, description, price, image],
                 (err, result) => {
                     done()
                     if (err) {
@@ -65,21 +66,22 @@ module.exports = function (Menu) {
         accepts: [
             { arg: 'name', type: 'string', http: { source: 'formData' } },
             { arg: 'description', type: 'string', http: { source: 'formData' } },
-            { arg: 'price', type: 'number', http: { source: 'formData' } }
+            { arg: 'price', type: 'number', http: { source: 'formData' } },
+            { arg: 'image', type: 'string', http: { source: 'formData' } }
         ],
         returns: { arg: 'menu', type: 'object', root: true }
     })
 
     // PUT
-    Menu.update = function (id, name, description, price, callback) {
+    Menu.update = function (id, name, description, price, image, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'UPDATE public."menus" SET name = $1, description = $2, price = $3 WHERE id = $4',
-                [name, description, price, id],
+                'UPDATE public."menus" SET name = $1, description = $2, price = $3, image = $4 WHERE id = $5',
+                [name, description, price, image, id],
                 (err, result) => {
                     done()
                     if (err) {
@@ -98,7 +100,8 @@ module.exports = function (Menu) {
             { arg: 'id', type: 'string', required: true },
             { arg: 'name', type: 'string', http: { source: 'formData' } },
             { arg: 'description', type: 'string', http: { source: 'formData' } },
-            { arg: 'price', type: 'number', http: { source: 'formData' } }
+            { arg: 'price', type: 'number', http: { source: 'formData' } },
+            { arg: 'image', type: 'string', http: { source: 'formData' } }
         ],
         returns: { arg: 'menu', type: 'object', root: true }
     })

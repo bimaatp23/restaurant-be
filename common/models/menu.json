@@ -20,6 +20,10 @@
     "price": {
       "type": "number",
       "required": true
+    },
+    "image": {
+      "type": "string",
+      "required": true
     }
   },
   "validations": [],
