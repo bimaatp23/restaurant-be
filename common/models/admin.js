@@ -6,37 +6,37 @@ const authentication = require('../../server/utils/Authentication')
 const dotenv = require('dotenv').config()
 const Constant = require('../../server/utils/Constant')
 
-module.exports = function (Customer) {
+module.exports = function (Admin) {
     // LOGIN
-    Customer.login = function (username, password, callback) {
+    Admin.login = function (username, password, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'SELECT * FROM public."customers" WHERE username = $1 AND password = $2',
+                'SELECT * FROM public."admins" WHERE username = $1 AND password = $2',
                 [username, password],
                 (err, result) => {
                     done()
                     if (err) {
                         callback(null, error_response(err.message))
                     } else {
-                        const customer = result.rows
-                        if (customer.length == 0) {
+                        const admin = result.rows
+                        if (admin.length == 0) {
                             callback(null, response(401, 'Invalid Username or Password'))
                         } else {
                             const token = jwt.sign({
-                                id: customer[0].id,
-                                name: customer[0].name,
-                                username: customer[0].username,
-                                role: Constant.ROLE_CUSTOMER
+                                id: admin[0].id,
+                                name: admin[0].name,
+                                username: admin[0].username,
+                                role: Constant.ROLE_ADMIN
                             }, process.env.SECRET_KEY)
-                            callback(null, response(200, 'Login Customer Success', {
-                                id: customer[0].id,
-                                name: customer[0].name,
-                                username: customer[0].username,
-                                role: Constant.ROLE_CUSTOMER,
+                            callback(null, response(200, 'Login Admin Success', {
+                                id: admin[0].id,
+                                name: admin[0].name,
+                                username: admin[0].username,
+                                role: Constant.ROLE_ADMIN,
                                 token: token
                             }))
                         }
@@ -45,106 +45,75 @@ module.exports = function (Customer) {
             )
         })
     }
-    Customer.remoteMethod('login', {
+    Admin.remoteMethod('login', {
         http: { verb: 'post', path: '/login' },
         accepts: [
             { arg: 'username', type: 'string', http: { source: 'formData' } },
             { arg: 'password', type: 'string', http: { source: 'formData' } }
         ],
-        returns: { arg: 'customer', type: 'object', root: true }
-    })
-
-    // REGISTER
-    Customer.register = function (name, username, password, callback) {
-        db.connect((err, client, done) => {
-            if (err) {
-                callback(null, error_response(err.message))
-                return
-            }
-            client.query(
-                'INSERT INTO public."customers" (id, name, username, password) VALUES ($1, $2, $3, $4)',
-                [uuid(), name, username, password],
-                (err, result) => {
-                    done()
-                    if (err) {
-                        callback(null, error_response(err.message))
-                    } else {
-                        callback(null, response(200, 'Register Customer Success'))
-                    }
-                }
-            )
-        })
-    }
-    Customer.remoteMethod('register', {
-        http: { verb: 'post', path: '/register' },
-        accepts: [
-            { arg: 'name', type: 'string', http: { source: 'formData' } },
-            { arg: 'username', type: 'string', http: { source: 'formData' } },
-            { arg: 'password', type: 'string', http: { source: 'formData' } },
-        ],
-        returns: { arg: 'customer', type: 'object', root: true }
+        returns: { arg: 'admin', type: 'object', root: true }
     })
 
     // CHANGE PASSWORD
-    Customer.changePassword = function (newPassword, payload, callback) {
+    Admin.changePassword = function (newPassword, payload, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'UPDATE public."customers" SET password = $1 WHERE id = $2',
+                'UPDATE public."admins" SET password = $1 WHERE id = $2',
                 [newPassword, payload.id],
                 (err, result) => {
                     done()
                     if (err) {
                         callback(null, error_response(err.message))
                     } else {
-                        callback(null, response(200, 'Change Password Customer Success'))
+                        callback(null, response(200, 'Change Password Admin Success'))
                     }
                 }
             )
         })
     }
-    Customer.beforeRemote('changePassword', authentication)
-    Customer.remoteMethod('changePassword', {
+    Admin.beforeRemote('changePassword', authentication)
+    Admin.remoteMethod('changePassword', {
         http: { verb: 'put', path: '/change-password' },
         accepts: [
             { arg: 'newPassword', type: 'string', http: { source: 'formData' } },
             { arg: 'payload', type: 'object' }
         ],
-        returns: { arg: 'customer', type: 'object', root: true }
+        returns: { arg: 'admin', type: 'object', root: true }
     })
 
     // UPDATE
-    Customer.update = function (name, username, payload, callback) {
+    Admin.update = function (name, username, payload, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'UPDATE public."customers" SET name = $1, username = $2 WHERE id = $3',
+                'UPDATE public."admins" SET name = $1, username = $2 WHERE id = $3',
                 [name, username, payload.id],
                 (err, result) => {
                     done()
                     if (err) {
                         callback(null, error_response(err.message))
                     } else {
-                        callback(null, response(200, 'Update Profile Customer Success'))
+                        callback(null, response(200, 'Update Profile Admin Success'))
                     }
                 }
             )
         })
     }
-    Customer.beforeRemote('update', authentication)
-    Customer.remoteMethod('update', {
+    Admin.beforeRemote('update', authentication)
+    Admin.remoteMethod('update', {
         http: { verb: 'put', path: '/update' },
         accepts: [
             { arg: 'name', type: 'string', http: { source: 'formData' } },
             { arg: 'username', type: 'string', http: { source: 'formData' } },
             { arg: 'payload', type: 'object' }
         ],
-        returns: { arg: 'customer', type: 'object', root: true }
+        returns: { arg: 'admin', type: 'object', root: true }
     })
 }

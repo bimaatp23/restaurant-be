@@ -36,11 +36,15 @@
     "dataSource": "db",
     "public": false
   },
-  "Menu": {
+  "Admin": {
     "dataSource": null,
     "public": true
   },
   "Customer": {
+    "dataSource": null,
+    "public": true
+  },
+  "Menu": {
     "dataSource": null,
     "public": true
   },
