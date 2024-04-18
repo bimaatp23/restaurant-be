@@ -55,7 +55,7 @@ module.exports = function (Admin) {
     })
 
     // CHANGE PASSWORD
-    Admin.changePassword = function (newPassword, payload, callback) {
+    Admin.changePassword = function (new_password, payload, callback) {
         db.connect((err, client, done) => {
             if (err) {
                 callback(null, error_response(err.message))
@@ -63,7 +63,7 @@ module.exports = function (Admin) {
             }
             client.query(
                 'UPDATE public."admins" SET password = $1 WHERE id = $2',
-                [newPassword, payload.id],
+                [new_password, payload.id],
                 (err, result) => {
                     done()
                     if (err) {
@@ -79,7 +79,7 @@ module.exports = function (Admin) {
     Admin.remoteMethod('changePassword', {
         http: { verb: 'put', path: '/change-password' },
         accepts: [
-            { arg: 'newPassword', type: 'string', http: { source: 'formData' } },
+            { arg: 'new_password', type: 'string', http: { source: 'formData' } },
             { arg: 'payload', type: 'object' }
         ],
         returns: { arg: 'admin', type: 'object', root: true }
