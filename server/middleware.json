@@ -32,7 +32,13 @@
   },
   "session": {},
   "auth": {},
-  "parse": {},
+  "parse": {
+    "body-parser#urlencoded": {
+      "params": {
+        "limit": "10mb"
+      }
+    }
+  },
   "routes": {
     "loopback#rest": {
       "paths": [
