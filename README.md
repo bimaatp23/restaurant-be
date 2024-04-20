@@ -47,3 +47,10 @@ npm start
 ```
 
 The server will start at `http://localhost:3000`.
+
+# API Documentation
+
+- ***[Admin Service](ADMIN.md)***
+- ***[Customer Service](CUSTOMER.md)***
+- ***[Menu Service](MENU.md)***
+- ***[Order Service](ORDER.md)***
