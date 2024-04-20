@@ -1,6 +1,6 @@
 {
   "loopback-component-explorer": {
-    "mountPath": "/service/explorer",
+    "mountPath": "/explorer",
     "generateOperationScopedModels": true
   }
 }
