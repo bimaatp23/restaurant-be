@@ -14,7 +14,7 @@ module.exports = function (Order) {
                 return
             }
             client.query(
-                'SELECT o.id, o.customer_id, o.total, o.date, o.status, json_agg(oi) AS order_items FROM public."orders" AS o LEFT JOIN public."order_items" AS oi ON o.id = oi.order_id GROUP BY o.id, o.customer_id, o.total, o.date, o.status',
+                'SELECT o.id, o.customer_id, c.name AS customer_name, o.total, o.date, o.status, json_agg(oi) AS items FROM public."orders" AS o LEFT JOIN public."order_items" AS oi ON o.id = oi.order_id LEFT JOIN public."customers" AS c ON o.customer_id = c.id GROUP BY o.id, o.customer_id, c.name, o.total, o.date, o.status',
                 (err, result) => {
                     done()
                     if (err) {
