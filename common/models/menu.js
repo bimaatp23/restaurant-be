@@ -39,7 +39,7 @@ module.exports = function (Menu) {
         returns: { arg: 'menu', type: 'object', root: true }
     })
 
-    // POST
+    // CREATE
     Menu.create = function (name, description, price, image, callback) {
         db.connect((err, client, done) => {
             if (err) {
@@ -72,7 +72,7 @@ module.exports = function (Menu) {
         returns: { arg: 'menu', type: 'object', root: true }
     })
 
-    // PUT
+    // UPDATE
     Menu.update = function (id, name, description, price, image, callback) {
         db.connect((err, client, done) => {
             if (err) {

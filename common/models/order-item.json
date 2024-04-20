@@ -15,11 +15,19 @@
       "type": "string",
       "required": true
     },
-    "menu_item_id": {
+    "name": {
       "type": "string",
       "required": true
     },
+    "price": {
+      "type": "number",
+      "required": true
+    },
     "quantity": {
+      "type": "number",
+      "required": true
+    },
+    "subtotal": {
       "type": "number",
       "required": true
     }

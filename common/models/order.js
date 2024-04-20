@@ -1,118 +1,157 @@
 const { uuid } = require('../../server/utils/UUID')
 const db = require('../../server/utils/DB')
+const Constant = require('../../server/utils/Constant')
+const moment = require('moment')
+const authentication = require('../../server/utils/Authentication')
+const { response, error_response } = require('../../server/utils/Response')
 
 module.exports = function (Order) {
     // GET
-    Order.get = function (callback) {
+    Order.get = function (payload, callback) {
         db.connect((err, client, done) => {
             if (err) {
-                callback(err)
+                callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'SELECT * FROM public."orders"',
+                'SELECT o.id, o.customer_id, o.total, o.date, o.status, json_agg(oi) AS order_items FROM public."orders" AS o LEFT JOIN public."order_items" AS oi ON o.id = oi.order_id GROUP BY o.id, o.customer_id, o.total, o.date, o.status',
                 (err, result) => {
                     done()
                     if (err) {
-                        callback(err)
+                        callback(null, error_response(err.message))
                     } else {
-                        const order = result.rows
-                        callback(null, order)
+                        let order = result.rows
+                        order = order.map((value) => {
+                            return {
+                                ...value,
+                                total: parseFloat(value.total)
+                            }
+                        })
+                        if (payload.role == Constant.ROLE_CUSTOMER) {
+                            order = order.filter((value) => value.customer_id == payload.id)
+                        }
+                        callback(null, response(200, 'Get Order List Success', order))
                     }
                 }
             )
         })
     }
+    Order.beforeRemote('get', (ctx, unused, next) => authentication(ctx, unused, next))
     Order.remoteMethod('get', {
         http: { verb: 'get', path: '/' },
+        accepts: { arg: 'payload', type: 'object' },
         returns: { arg: 'order', type: 'array', root: true }
     })
 
-    // POST
-    Order.create = function (data, callback) {
-        const { customer_id, date, status } = data
+    // CREATE
+    Order.create = function (total, items, payload, callback) {
+        const orderId = uuid()
+        const arrayItems = JSON.parse(items)
         db.connect((err, client, done) => {
             if (err) {
-                callback(err)
+                callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'INSERT INTO public."orders" (id, customer_id, date, status) VALUES ($1, $2, $3, $4) RETURNING *',
-                [uuid(), customer_id, date, status],
+                'INSERT INTO public.orders(id, customer_id, total, date, status) VALUES ($1, $2, $3, $4, $5)',
+                [orderId, payload.id, total, moment().utcOffset(420).format('YYYY/MM/DD HH:mm:ss'), Constant.STATUS_PENDING],
                 (err, result) => {
-                    done()
                     if (err) {
-                        callback(err)
-                    } else {
-                        const order = result.rows[0]
-                        callback(null, order)
+                        done(err) // Release client if error
+                        callback(null, error_response(err.message))
+                        return
                     }
+                    const insertItemQueries = arrayItems.map((item) => {
+                        return new Promise((resolve, reject) => {
+                            client.query(
+                                'INSERT INTO public.order_items(id, order_id, name, price, quantity, subtotal) VALUES ($1, $2, $3, $4, $5, $6)',
+                                [uuid(), orderId, item.name, item.price, item.quantity, item.subtotal],
+                                (err, result) => {
+                                    if (err) {
+                                        reject(err)
+                                        return
+                                    }
+                                    resolve()
+                                }
+                            )
+                        })
+                    })
+                    Promise.all(insertItemQueries)
+                        .then(() => {
+                            done()
+                            callback(null, response(200, 'Create Order Success'))
+                        })
+                        .catch((err) => {
+                            done(err)
+                            callback(null, error_response(err.message))
+                        })
                 }
             )
         })
     }
+    Order.beforeRemote('create', (ctx, unused, next) => authentication(ctx, unused, next, Constant.ROLE_CUSTOMER))
     Order.remoteMethod('create', {
         http: { verb: 'post', path: '/' },
-        accepts: { arg: 'data', type: 'object', http: { source: 'body' } },
-        returns: { arg: 'order', type: 'object', root: true }
-    })
-
-    // PUT
-    Order.update = function (id, data, callback) {
-        const { customer_id, date, status } = data
-        db.connect((err, client, done) => {
-            if (err) {
-                callback(err)
-                return
-            }
-            client.query(
-                'UPDATE public."orders" SET customer_id = $1, date = $2, status = $3 WHERE id = $4 RETURNING *',
-                [customer_id, date, status, id],
-                (err, result) => {
-                    done()
-                    if (err) {
-                        callback(err)
-                    } else {
-                        const order = result.rows[0]
-                        callback(null, order)
-                    }
-                }
-            )
-        })
-    }
-    Order.remoteMethod('update', {
-        http: { verb: 'put', path: '/:id' },
         accepts: [
-            { arg: 'id', type: 'string', required: true },
-            { arg: 'data', type: 'object', http: { source: 'body' } }
+            { arg: 'total', type: 'string', http: { source: 'formData' } },
+            { arg: 'items', type: 'string', http: { source: 'formData' } },
+            { arg: 'payload', type: 'object' }
         ],
         returns: { arg: 'order', type: 'object', root: true }
     })
 
-    // DELETE
-    Order.delete = function (id, callback) {
+    // PROCESS
+    Order.process = function (id, callback) {
         db.connect((err, client, done) => {
             if (err) {
-                callback(err)
+                callback(null, error_response(err.message))
                 return
             }
             client.query(
-                'DELETE FROM public."orders" WHERE id = $1 RETURNING *',
-                [id],
+                'UPDATE public."orders" SET status = $1 WHERE id = $2',
+                [Constant.STATUS_PROCESS, id],
                 (err, result) => {
                     done()
                     if (err) {
-                        callback(err)
+                        callback(null, error_response(err.message))
                     } else {
-                        const order = result.rows[0]
-                        callback(null, order)
+                        callback(null, response(200, 'Process Order Success'))
                     }
                 }
             )
         })
     }
-    Order.remoteMethod('delete', {
-        http: { verb: 'delete', path: '/:id' },
+    Order.beforeRemote('process', (ctx, unused, next) => authentication(ctx, unused, next, Constant.ROLE_ADMIN))
+    Order.remoteMethod('process', {
+        http: { verb: 'put', path: '/process/:id' },
+        accepts: { arg: 'id', type: 'string', required: true },
+        returns: { arg: 'order', type: 'object', root: true }
+    })
+
+    // DONE
+    Order.done = function (id, callback) {
+        db.connect((err, client, done) => {
+            if (err) {
+                callback(null, error_response(err.message))
+                return
+            }
+            client.query(
+                'UPDATE public."orders" SET status = $1 WHERE id = $2',
+                [Constant.STATUS_DONE, id],
+                (err, result) => {
+                    done()
+                    if (err) {
+                        callback(null, error_response(err.message))
+                    } else {
+                        callback(null, response(200, 'Done Order Success'))
+                    }
+                }
+            )
+        })
+    }
+    Order.beforeRemote('done', (ctx, unused, next) => authentication(ctx, unused, next, Constant.ROLE_ADMIN))
+    Order.remoteMethod('done', {
+        http: { verb: 'put', path: '/done/:id' },
         accepts: { arg: 'id', type: 'string', required: true },
         returns: { arg: 'order', type: 'object', root: true }
     })
